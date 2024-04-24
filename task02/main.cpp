@@ -1,6 +1,7 @@
 #include <filesystem>
 // #include <experimental/filesystem> // uncomment here if the <filesystem> cannot be included above
 //
+#include <cmath>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 #include "Eigen/Core"
@@ -65,8 +66,17 @@ int number_of_intersection_ray_against_quadratic_bezier(
     const Eigen::Vector2f &pc,
     const Eigen::Vector2f &pe) {
   // comment out below to do the assignment
-  return number_of_intersection_ray_against_edge(org, dir, ps, pe);
+  // return number_of_intersection_ray_against_edge(org, dir, ps, pe);
   // write some code below to find the intersection between ray and the quadratic
+  unsigned int cross_count = 0;
+  const float dt = 0.1f;
+  for (float t =0.0f; t < 1.0f; t+=dt){
+    const auto p0 = (1.0f-t)*(1.0f-t) * ps + 2.0f*(1.0f-t)*t * pc + t*t * pe;
+    const auto p1 = (1.0f-t-dt)*(1.0f-t-dt) * ps + 2.0f*(1.0f-t-dt)*(t+dt) * pc + (t+dt)*(t+dt) * pe;
+    cross_count += number_of_intersection_ray_against_edge(org, dir, p0, p1);
+    // 
+  }
+  return cross_count;
 }
 
 int main() {
@@ -86,7 +96,8 @@ int main() {
       const auto dir = Eigen::Vector2f(60., 20.); // search direction
       int count_cross = 0;
       for (const auto &loop: loops) { // loop over loop (letter R have internal/external loops)
-        for (const auto &edge: loop) { // loop over edge in the loop
+          for (const auto &edge: loop) { // loop over edge in the loop
+
           if (edge.is_bezier) { // in case the edge is a quadratic Bézier
             count_cross += number_of_intersection_ray_against_quadratic_bezier(
                 org, dir,
