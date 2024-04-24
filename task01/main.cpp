@@ -3,9 +3,7 @@
 #include <cassert>
 #include <vector>
 #include <filesystem>
-#define _USE_MATH_DEFINES
 #include <cmath>
-//
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -35,7 +33,7 @@ void draw_triangle(
       const auto y = (float) ih + 0.5f;
       const auto a01 = area_of_a_triangle(x, y, x0, y0, x1, y1);
       const auto a12 = area_of_a_triangle(x, y, x1, y1, x2, y2);
-      const auto a20 = area_of_a_triangle(x, y, x2, y2, x0, y0);
+      const auto a20 = area_of_a_triangle(x, y, x2, y2, x0, y0); 
       if (a01 > 0.f && a12 > 0.f && a20 > 0.f) {
         img_data[ih * height + iw] = brightness;
       }
@@ -67,7 +65,12 @@ void draw_polygon(
         float p1x = polygon_xy[i1_vtx * 2 + 0] - x;
         float p1y = polygon_xy[i1_vtx * 2 + 1] - y;
         // write a few lines of code to compute winding number (hint: use atan2)
+        float cos_theta = ((p0x * p1x) + (p0y * p1y)) / (sqrt(p0x * p0x + p0y * p0y) * sqrt(p1x * p1x + p1y * p1y));
+        float sin_theta = ((p0y * p1x) - (p0x * p1y)) / (sqrt(p0x * p0x + p0y * p0y) * sqrt(p1x * p1x + p1y * p1y));
+        float theta = atan2(sin_theta, cos_theta);
+        winding_number += theta / (2 * M_PI);
       }
+      //std::cout << winding_number << "\n";
       const int int_winding_number = int(std::round(winding_number));
       if (int_winding_number == 1 ) { // if (x,y) is inside the polygon
         img_data[ih*width + iw] = brightness;
@@ -93,6 +96,129 @@ void dda_line(
   auto dx = x1 - x0;
   auto dy = y1 - y0;
   // write some code below to paint pixel on the line with color `brightness`
+  unsigned int x0i = int(std::round(x0));
+  unsigned int y0i = int(std::round(y0));
+  unsigned int x1i = int(std::round(x1));
+  unsigned int y1i = int(std::round(y1));
+  float x = x0;
+  float y = y0;
+  
+  if (dx == 0 && dy > 0) 
+  {
+    for (unsigned int ih = y0i; ih < y1; ih++) {
+      img_data[ih*width + x0i] = brightness;
+    }
+  }
+  else if (dx == 0 && dy < 0)
+  {
+    for (unsigned int ih = y0i; ih > y1; ih--) {
+      img_data[ih*width + x0i] = brightness;
+    }
+  }
+  else if (dx > 0 && dy == 0)
+  {
+    for (unsigned int iw = x0i; iw < x1; iw++) {
+      img_data[(y0i*width) + iw] = brightness;
+    }
+  }
+  else if (dx < 0 && dy == 0)
+  {
+    for (unsigned int iw = x0; iw > x1; iw--) {
+      img_data[(y0i*width) + iw] = brightness;
+    }
+  }
+
+  
+  else if (dx > 0 && dy/dx > 0 && dy/dx <= 1)
+  {
+    unsigned int iw = x0i;
+    for (unsigned int ih = y0i; ih < y1i; ih++) {
+      while(int(std::round(y + dy/dx)) == ih) {
+        img_data[(ih*width) + iw] = brightness;
+        y += dy/dx;
+        iw++;
+      }
+    }
+  }
+  else if (dx > 0 && dy/dx > 0 && dy/dx > 1)
+  {
+    unsigned int ih = y0i;
+    for (unsigned int iw = x0i; iw < x1i; iw++) {
+      while(int(std::round(x + dx/dy)) == iw) {
+        img_data[(ih*width) + iw] = brightness;
+        x += dx/dy;
+        ih++;
+      }
+    }
+  }
+  else if (dx > 0 && dy/dx < 0 && dy/dx >= -1) 
+  {
+    unsigned int iw = x0i;
+    for (unsigned int ih = y0i; ih > y1i; ih--) {
+      while(int(std::round(y + dy/dx)) == ih) {
+        img_data[(ih*width) + iw] = brightness;
+        y += dy/dx;
+        iw++;
+      }
+    }
+  }
+  else if (dx > 0 && dy/dx < 0 && dy/dx < -1)
+  {
+    unsigned int ih = y0i;
+    for (unsigned int iw = x0i; iw < x1i; iw++) {
+      while(int(std::round(x - dx/dy)) == iw) {
+        img_data[(ih*width) + iw] = brightness;
+        x -= dx/dy;
+        ih--;
+      }
+    }
+  }
+
+
+  else if (dx < 0 && dy/dx > 0 && dy/dx <= 1)
+  {
+    unsigned int iw = x0i;
+    for (unsigned int ih = y0i; ih > y1i; ih--) {
+      while(int(std::round(y - dy/dx)) == ih) {
+        img_data[(ih*width) + iw] = brightness;
+        y -= dy/dx;
+        iw--;
+      }
+    }
+  }
+  else if (dx < 0 && dy/dx > 0 && dy/dx > 1)
+  {
+    unsigned int ih = y0i;
+    for (unsigned int iw = x0i; iw > x1i; iw--) {
+      while(int(std::round(x - dx/dy)) == iw) {
+        img_data[(ih*width) + iw] = brightness;
+        x -= dx/dy;
+        ih--;
+      }
+    }
+  }
+  else if (dx < 0 && dy/dx < 0 && dy/dx >= -1) 
+  {
+    unsigned int iw = x0i;
+    for (unsigned int ih = y0i; ih < y1i; ih++) {
+      while(int(std::round(y - dy/dx)) == ih) {
+        img_data[(ih*width) + iw] = brightness;
+        y -= dy/dx;
+        iw--;
+      }
+    }
+  }
+  else if (dx < 0 && dy/dx < 0 && dy/dx < -1)
+  {
+    unsigned int ih = y0i;
+    for (unsigned int iw = x0i; iw > x1i; iw--) {
+      while(int(std::round(x + dx/dy)) == iw) {
+        img_data[(ih*width) + iw] = brightness;
+        x += dx/dy;
+        ih++;
+      }
+    }
+  }
 }
 
 int main() {
