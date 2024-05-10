@@ -70,6 +70,16 @@ void draw_3d_triangle_with_texture(
       Eigen::Matrix4f coeff;
       Eigen::Vector4f rhs;
 
+      // std::cout << q0.x() << q0.y() << q0.z() << q0.w() << "\n";
+      coeff = Eigen::Matrix4f::Zero();
+      coeff(0,0) = 1.f / q0.w();
+      coeff(1,1) = 1.f / q1.w();
+      coeff(2,2) = 1.f / q2.w();
+      coeff(3,3) = 1.f;
+      // Eigen::Vector3f homo_bc = (bc[0], bc[1], bc[2], 1.f);
+      rhs = coeff * bc.homogeneous();
+      bc = Eigen::Vector3f(rhs[0], rhs[1], rhs[2]) / (rhs[0]+rhs[1]+rhs[2]); 
+
       // do not change below
       auto uv = uv0 * bc[0] + uv1 * bc[1] + uv2 * bc[2]; // uv coordinate of the pixel
       // compute pixel coordinate of the texture
