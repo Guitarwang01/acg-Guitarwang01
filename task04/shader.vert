@@ -27,6 +27,14 @@ void main()
         //x0 = ???
         //y0 = ???
         //z0 = ???
+        nrm /= length(nrm);
+        vec3 p = vec3(x0, y0, z0);
+        vec3 a = p - org;
+        float half_s_l = dot(a, nrm) / length(nrm);
+        vec3 b = a - nrm/length(nrm) * 2 * half_s_l + org;
+        x0 = b.x;
+        y0 = b.y;
+        z0 = b.z+0.5; 
     }
     // do not edit below
 
