@@ -37,13 +37,35 @@ float SDF(vec3 pos)
 {
   float d0 = sdCappedCylinder(pos, len_cylinder, rad_cylinder);
   // write some code to combine the signed distance fields above to design the object described in the README.md
-  return d0; // comment out and define new distance
+  vec3 pos1 = vec3(pos.y, pos.z, pos.x);
+  vec3 pos2 = vec3(pos.z, pos.x, pos.y);
+  float d1 = sdCappedCylinder(pos1, len_cylinder, rad_cylinder);
+  float d2 = sdCappedCylinder(pos2, len_cylinder, rad_cylinder);
+  float d = min(min(d0, d1),d2);
+
+  vec3 b = vec3(box_size, box_size, box_size);
+  float a0 = sdBox(pos, b);
+  float a1 = sdSphere(pos, rad_sphere);
+  float a = max(a0, a1);
+  return max(a, -d);// comment out and define new distance
 }
 
 /// RGB color at the position `pos`
 vec3 SDF_color(vec3 pos)
 {
   // write some code below to return color (RGB from 0 to 1) to paint the object describe in README.md
+  float d0 = sdCappedCylinder(pos, len_cylinder, rad_cylinder);
+  vec3 pos1 = vec3(pos.y, pos.z, pos.x);
+  vec3 pos2 = vec3(pos.z, pos.x, pos.y);
+  float d1 = sdCappedCylinder(pos1, len_cylinder, rad_cylinder);
+  float d2 = sdCappedCylinder(pos2, len_cylinder, rad_cylinder);
+  float d = min(min(d0, d1),d2);
+
+  vec3 b = vec3(box_size, box_size, box_size);
+  float a0 = sdBox(pos, b);
+  float a1 = sdSphere(pos, rad_sphere);
+  if(a1 >= 0.0) {return vec3(0., 0., 1.);} 
+  else if(a0 >= 0.0) {return vec3(1., 0., 0.);}
   return vec3(0., 1., 0.); // comment out and define new color
 }
 
@@ -76,8 +98,8 @@ void main()
     if( s0 < 1.0e-3 ){ // the ray hit the implicit surfacee
       float eps = 1.0e-3;
       float sx = SDF(pos_cur+vec3(eps,0,0))-s0; // finite difference x-direction
-      float sy = SDF(pos_cur+vec3(0,eps,0))-s0; // finite difference x-direction
-      float sz = SDF(pos_cur+vec3(0,0,eps))-s0; // finite difference y-direction
+      float sy = SDF(pos_cur+vec3(0,eps,0))-s0; // finite difference y-direction
+      float sz = SDF(pos_cur+vec3(0,0,eps))-s0; // finite difference z-direction
       vec3 nrm = normalize(vec3(sx,sy,sz)); // normal direction
       float coeff = -dot(nrm, dir); // Lambersian reflection. The light is at the camera position.
       vec3 color = SDF_color(pos_cur);
