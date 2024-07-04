@@ -131,11 +131,9 @@ class HelloWorld(mglw.WindowConfig):
         self.vtx2xyz_def[self.fixear2vtx, 0] += -0.5 * math.sin(time)
         self.vtx2xyz_def[self.fixback2vtx, 2] += -0.3 * math.sin(2. * time)
 
-        # rhsx = self.matrix_fix.dot(self.vtx2xyz_def[:,0])+self.matrix_laplace.dot(self.vtx2xyz_ini[:,0])
-        # rhsz = self.matrix_fix.dot(self.vtx2xyz_def[:,2])+self.matrix_laplace.dot(self.vtx2xyz_ini[:,2])
-        rhsx = self.matrix_fix.dot(self.vtx2xyz_def[:,0])+self.matrix_bilaplace.dot(self.vtx2xyz_ini[:,0])
-        rhsz = self.matrix_fix.dot(self.vtx2xyz_def[:,2])+self.matrix_bilaplace.dot(self.vtx2xyz_ini[:,2])
-        lhs = self.matrix_fix + self.matrix_bilaplace
+         rhsx = self.matrix_fix.dot(self.vtx2xyz_def[:,0])+self.matrix_laplace.dot(self.vtx2xyz_ini[:,0])
+        rhsz = self.matrix_fix.dot(self.vtx2xyz_def[:,2])+self.matrix_laplace.dot(self.vtx2xyz_ini[:,2])
+        lhs = self.matrix_fix + self.matrix_laplace
         self.vtx2xyz_def[:, 0] = spsolve(lhs, rhsx)
         self.vtx2xyz_def[:, 2] = spsolve(lhs, rhsz)
         
@@ -205,6 +203,18 @@ class HelloWorld(mglw.WindowConfig):
             rgb = np.frombuffer(self.ctx.fbo.read(), dtype=np.uint8)
             rgb = rgb.reshape(self.ctx.fbo.size[0], self.ctx.fbo.size[1], 3)
             if rgb.shape[0] == 1000:
+                rgb = rgb[::2, ::2, :].copy('C')
+            rgb = Image.fromarray(rgb)
+            ImageOps.flip(rgb).save("out.png")
+
+
+def main():
+    HelloWorld.run()
+
+
+if __name__ == "__main__":
+    main()
+= 1000:
                 rgb = rgb[::2, ::2, :].copy('C')
             rgb = Image.fromarray(rgb)
             ImageOps.flip(rgb).save("out.png")
